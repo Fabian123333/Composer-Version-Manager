@@ -24,6 +24,8 @@ Composer version 2.1.0 2021-06-03 11:30:09
 
 It's as simple as that!
 
+Afterwards you can continue simply callling "composer" - it's a wrapper script which will automatically forward commands to the actual composer binary.
+
 # About
 CVM is a version manager for composer, which installs wanted composer versions locally and run them transparency. CVM works on any POSIX-compliant shell (sh, dash, ksh, zsh, bash), in particular on these platforms: unix, macOS, and windows WSL.
 
