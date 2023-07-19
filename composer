@@ -1,0 +1,58 @@
+#!/bin/bash
+
+DOWNLOAD_FORMAT="https://getcomposer.org/download/%s/composer.phar"
+SHASUM_FORMAT="https://getcomposer.org/download/%s/composer.phar.sha256sum"
+
+install_composer() {
+        echo "install composer version $1";
+
+        tmpfile="$(mktemp)";
+        download_url="$(printf "$DOWNLOAD_FORMAT" "$1")";
+        shasum_url="$(printf "$SHASUM_FORMAT" "$1")";
+
+        if ! wget -O "$tmpfile" -o /dev/null "$download_url"; then
+                echo "error downloading composer, please check if version $1 exists";
+                rm -f "$tmpfile";
+                exit 1;
+        fi
+
+        # if exists as file or similar exit for security"
+        if ! mkdir -p "$HOME/.bin/composer-$COMPOSER_VERSION"; then
+                echo "error installing composer";
+                rm -f "$tmpfile";
+                exit 1;
+        fi;
+
+        shasum="$(curl -s "$shasum_url" | cut -d " " -f 1)";
+
+        if [ "$(sha256sum "$tmpfile" | cut -d " " -f 1 )" != "$shasum" ]; then
+                echo "error sha256 hash does not match, exit for securtiy";
+                rm -f "$tmpfile";
+                exit 1;
+        fi;
+
+        chmod +x "$tmpfile";
+        mv "$tmpfile" "$HOME/.bin/composer-$COMPOSER_VERSION/composer.phar";
+}
+
+if [ -z "$COMPOSER_VERSION" ]; then
+        COMPOSER_VERSION="latest-stable"
+fi;
+
+if [ "$COMPOSER_VERSION" == 1 ]; then
+        COMPOSER_VERSION="latest-1.x"
+fi;
+
+if [ "$COMPOSER_VERSION" == 2 ]; then
+        COMPOSER_VERSION="latest-2.x"
+fi;
+
+if [ ! -d "$HOME/.bin/composer-$COMPOSER_VERSION" ]; then
+        install_composer $COMPOSER_VERSION
+fi;
+
+if [ ! -f "$HOME/.bin/composer-$COMPOSER_VERSION/composer.phar" ]; then
+        echo "error composer version not available";
+fi;
+
+exec -a composer "$HOME/.bin/composer-$COMPOSER_VERSION/composer.phar" $@;
